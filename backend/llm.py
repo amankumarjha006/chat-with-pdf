@@ -1,13 +1,15 @@
 import os
+from pyexpat import model
 from urllib import response
 from dotenv import load_dotenv
 from groq import Groq
+import json
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
-print("KEY LOADED:", os.getenv("GROQ_API_KEY"))  # add this temporarily
-
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+MODEL = "llama-3.3-70b-versatile"
 
 def build_prompt(question: str, chunks: list[str]) -> str:
     context = "\n\n---\n\n".join(chunks)
@@ -24,7 +26,7 @@ def ask_llm(question: str, chunks: list[str]) -> str:
     prompt = build_prompt(question, chunks)
     
     response = client.chat.completions.create(
-        model = "llama-3.3-70b-versatile",
+        model = MODEL,
         messages=[
             {
                 "role": "system",
@@ -38,3 +40,31 @@ def ask_llm(question: str, chunks: list[str]) -> str:
     )
     
     return response.choices[0].message.content or "No response received."
+
+def generate_suggestions(text: str) -> list[str]:
+    overview = text[:500]
+    
+    question_prompt = f"""Here is the start of a document:
+
+{overview}
+
+Generate 4 short questions a user might ask about this document.
+Respond with ONLY a JSON array of 4 strings, no other text.
+Example format: ["Question 1?", "Question 2?", "Question 3?", "Question 4?"]"""
+
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[
+           {
+               "role": "user",
+               "content": question_prompt    
+           }
+        ]
+    )
+
+    content = response.choices[0].message.content or "[]"
+    
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        return ["What is this document about?", "What are the key points?", "Summarise this document.", "What are the main conclusions?"]

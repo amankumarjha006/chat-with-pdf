@@ -37,4 +37,4 @@ def ingest(pdf_bytes: bytes):
     text = extract_text(pdf_bytes)
     chunks = split_into_chunks(text)
     index = build_faiss_index(chunks)
-    return index, chunks
+    return index, chunks, text

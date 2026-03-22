@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from ingestion import ingest
 from retrieval import retrieve
-from llm import ask_llm
+from llm import ask_llm, generate_suggestions
 
 app = FastAPI()
 
@@ -38,13 +38,19 @@ async def upload_pdf(file: UploadFile = File(...)):
     pdf_bytes = await file.read()
     
     # run the full ingestion pipeline
-    index, chunks = ingest(pdf_bytes)
+    index, chunks, text = ingest(pdf_bytes)
     
     # store results in shared state so /ask can access them
     app.state.index = index
     app.state.chunks = chunks
     
-    return {"message": "PDF file uploaded successfully.", "chunk_count": len(chunks)}
+    questions = generate_suggestions(text)
+
+    return {
+        "message": "PDF file uploaded successfully.",
+        "chunk_count": len(chunks),
+        "suggestions": questions
+    }
 
 @app.post("/ask")
 def ask_question(body: QuestionRequest):
