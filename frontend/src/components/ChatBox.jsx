@@ -1,80 +1,74 @@
-import { useState, useRef, useEffect } from "react"
-import axios from "axios"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
-export default function ChatBox({ fileName, suggestions = [] }) {
+export default function ChatBox({ fileName, question, setQuestion }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "PDF is ready! Ask me anything about it."
-    }
-  ])
-  const [question, setQuestion] = useState("")
-  const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
+      text: "PDF is ready! Ask me anything about it.",
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   async function handleAsk() {
-    if (!question.trim() || loading) return
+    if (!question.trim() || loading) return;
 
-    const userMessage = { role: "user", text: question }
-    setMessages(prev => [...prev, userMessage])
-    setQuestion("")
-    setLoading(true)
+    const userMessage = { role: "user", text: question };
+    setMessages((prev) => [...prev, userMessage]);
+    setQuestion("");
+    setLoading(true);
 
     try {
       const res = await axios.post("http://localhost:8000/ask", {
-        question: userMessage.text
-      })
-      setMessages(prev => [
+        question: userMessage.text,
+      });
+      setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: res.data.answer }
-      ])
+        { role: "assistant", text: res.data.answer, pages: res.data.pages },
+      ]);
     } catch (err) {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: "Something went wrong. Please try again." }
-      ])
+        { role: "assistant", text: "Something went wrong. Please try again." },
+      ]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleAsk()
+      e.preventDefault();
+      handleAsk();
     }
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-
-      {/* header */}
-      <div className="border-b px-6 py-4 flex items-center justify-between ">
-        <div>
-          <h1 className="text-base font-semibold">Chat with PDF</h1>
-          <p className="text-xs text-muted-foreground">Powered by RAG + Groq</p>
-        </div>
-        <Badge variant="secondary" className="text-xs">
-          {fileName || "Document ready"}
-        </Badge>
-      </div>
-
+    <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* messages */}
       <ScrollArea className="flex-1 min-h-0 px-4 py-6">
         <div className="max-w-2xl mx-auto space-y-4">
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
+              {/* AI avatar — only show for assistant */}
+              {msg.role === "assistant" && (
+                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary shrink-0">
+                  AI
+                </div>
+              )}
+
               <div
                 className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                   msg.role === "user"
@@ -83,7 +77,28 @@ export default function ChatBox({ fileName, suggestions = [] }) {
                 }`}
               >
                 {msg.text}
+
+                {/* source pills */}
+                {msg.role === "assistant" && msg.pages?.length > 0 && (
+                  <div className="flex gap-1 mt-2 flex-wrap">
+                    {msg.pages.map((p) => (
+                      <span
+                        key={p}
+                        className="text-xs px-2 py-0.5 rounded-full border border-border bg-background text-muted-foreground"
+                      >
+                        Page {p}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* User avatar — only show for user */}
+              {msg.role === "user" && (
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground shrink-0">
+                  U
+                </div>
+              )}
             </div>
           ))}
 
@@ -99,30 +114,13 @@ export default function ChatBox({ fileName, suggestions = [] }) {
         </div>
       </ScrollArea>
 
-      {/* suggestions */}
-      {suggestions.length > 0 && (
-        <div className="px-4 pb-2">
-          <div className="max-w-2xl mx-auto flex gap-2 flex-wrap">
-            {suggestions.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => setQuestion(s)}
-                className="text-xs px-3 py-1.5 rounded-full border border-border bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* input */}
       <div className="border-t px-4 py-4">
         <div className="max-w-2xl mx-auto flex gap-2 items-end">
           <Textarea
             rows={1}
             value={question}
-            onChange={e => setQuestion(e.target.value)}
+            onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about the PDF... (Enter to send)"
             className="resize-none min-h-[44px] max-h-32"
@@ -136,7 +134,6 @@ export default function ChatBox({ fileName, suggestions = [] }) {
           </Button>
         </div>
       </div>
-
     </div>
-  )
+  );
 }

@@ -54,14 +54,17 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 @app.post("/ask")
 def ask_question(body: QuestionRequest):
-    # make sure a PDF has been uploaded first
     if app.state.index is None:
         raise HTTPException(status_code=400, detail="No PDF uploaded yet.")
-    # retrive relevant chunks from FAISS
-    relevant_chunks = retrieve(body.question, app.state.index, app.state.chunks)
     
-    # get answer from llm
+    relevant_chunks = retrieve(body.question, app.state.index, app.state.chunks)
     answer = ask_llm(body.question, relevant_chunks)
     
-    return{"answer": answer}
+    # extract unique page numbers
+    pages = list(set([chunk["page"] for chunk in relevant_chunks]))
+    
+    return {
+        "answer": answer,
+        "pages": sorted(pages)  # sorted so they appear in order
+    }
     

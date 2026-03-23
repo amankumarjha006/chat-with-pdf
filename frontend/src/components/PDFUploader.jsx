@@ -27,7 +27,7 @@ export default function PdfUploader({ onUploadSuccess }) {
     try {
       const res = await axios.post("http://localhost:8000/upload", formData)
       setUploaded(res.data)
-      onUploadSuccess({ name: file.name, suggestions: res.data.suggestions })
+      onUploadSuccess({ name: file.name, suggestions: res.data.suggestions, chunkCount: res.data.chunk_count })
     } catch (err) {
         console.log("Error:", err)        // ← add this
         console.log("Error response:", err.response)  // ← and this

@@ -1,6 +1,4 @@
 import os
-from pyexpat import model
-from urllib import response
 from dotenv import load_dotenv
 from groq import Groq
 import json
@@ -11,8 +9,10 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 MODEL = "llama-3.3-70b-versatile"
 
-def build_prompt(question: str, chunks: list[str]) -> str:
-    context = "\n\n---\n\n".join(chunks)
+def build_prompt(question: str, chunks: list[dict]) -> str:
+    context = "\n\n---\n\n".join(
+        [f"[Page {chunk['page']}]\n{chunk['text']}" for chunk in chunks]
+    )
     
     return f"""Use the following context extracted from a PDF to answer the question.
 If the answer cannot be found in the context, say "I couldn't find that in the document."
@@ -22,7 +22,7 @@ Context:
 
 Question: {question}"""
 
-def ask_llm(question: str, chunks: list[str]) -> str:
+def ask_llm(question: str, chunks: list[dict]) -> str:
     prompt = build_prompt(question, chunks)
     
     response = client.chat.completions.create(
@@ -48,9 +48,9 @@ def generate_suggestions(text: str) -> list[str]:
 
 {overview}
 
-Generate 4 short questions a user might ask about this document.
-Respond with ONLY a JSON array of 4 strings, no other text.
-Example format: ["Question 1?", "Question 2?", "Question 3?", "Question 4?"]"""
+Generate 5 short questions a user might ask about this document.
+Respond with ONLY a JSON array of 5 strings, no other text.
+Example format: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]"""
 
     response = client.chat.completions.create(
         model=MODEL,
