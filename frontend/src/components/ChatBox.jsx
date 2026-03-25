@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import {
+  SendHorizonal,
+  Bot,
+  User,
+  BookOpen,
+  Sparkles,
+} from "lucide-react";
 
 export default function ChatBox({ fileName, question, setQuestion }) {
   const [messages, setMessages] = useState([
@@ -54,58 +61,87 @@ export default function ChatBox({ fileName, question, setQuestion }) {
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
-      {/* messages */}
-      <ScrollArea className="flex-1 min-h-0 px-4 py-6">
-        <div className="max-w-2xl mx-auto space-y-4">
+      {/* ── Messages area ─────────────────────────────── */}
+      <ScrollArea className="flex-1 min-h-0 px-6 py-8">
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Welcome state */}
+          {messages.length === 1 && !loading && (
+            <div className="flex flex-col items-center justify-center pt-12 pb-8 text-center animate-fade-in-up">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <Sparkles className="w-7 h-7 text-primary" />
+              </div>
+              <h2 className="text-lg font-semibold text-foreground mb-1">
+                Your PDF is ready
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+                Ask any question about your document and get AI-powered answers
+                with source page references.
+              </p>
+            </div>
+          )}
+
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex gap-3 ${
+                msg.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
-              {/* AI avatar — only show for assistant */}
+              {/* AI avatar */}
               {msg.role === "assistant" && (
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary shrink-0">
-                  AI
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Bot className="w-4 h-4 text-primary" />
                 </div>
               )}
 
               <div
-                className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                className={`max-w-[80%] rounded-2xl text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-muted text-foreground rounded-bl-sm"
+                    ? "bg-primary text-primary-foreground px-5 py-3.5 rounded-br-md"
+                    : "bg-card border border-border/50 shadow-sm px-5 py-4 rounded-bl-md"
                 }`}
               >
-                {msg.text}
+                {/* Message text */}
+                <p className="whitespace-pre-wrap">{msg.text}</p>
 
-                {/* source pills */}
+                {/* Source page pills */}
                 {msg.role === "assistant" && msg.pages?.length > 0 && (
-                  <div className="flex gap-1 mt-2 flex-wrap">
+                  <div className="flex gap-1.5 mt-3 flex-wrap pt-2 border-t border-border/30">
+                    <BookOpen className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
                     {msg.pages.map((p) => (
-                      <span
+                      <Badge
                         key={p}
-                        className="text-xs px-2 py-0.5 rounded-full border border-border bg-background text-muted-foreground"
+                        variant="secondary"
+                        className="text-[10px] px-2 py-0.5 rounded-full font-normal"
                       >
                         Page {p}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* User avatar — only show for user */}
+              {/* User avatar */}
               {msg.role === "user" && (
-                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground shrink-0">
-                  U
+                <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0 mt-0.5">
+                  <User className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
             </div>
           ))}
 
+          {/* Typing indicator */}
           {loading && (
-            <div className="flex justify-start">
-              <div className="bg-muted text-muted-foreground px-4 py-3 rounded-2xl rounded-bl-sm text-sm">
-                <span className="animate-pulse">Thinking...</span>
+            <div className="flex gap-3 justify-start">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4 text-primary" />
+              </div>
+              <div className="bg-card border border-border/50 shadow-sm px-5 py-4 rounded-2xl rounded-bl-md">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-primary/50 typing-dot" />
+                  <span className="w-2 h-2 rounded-full bg-primary/50 typing-dot" />
+                  <span className="w-2 h-2 rounded-full bg-primary/50 typing-dot" />
+                </div>
               </div>
             </div>
           )}
@@ -114,23 +150,24 @@ export default function ChatBox({ fileName, question, setQuestion }) {
         </div>
       </ScrollArea>
 
-      {/* input */}
-      <div className="border-t px-4 py-4">
-        <div className="max-w-2xl mx-auto flex gap-2 items-end">
+      {/* ── Input bar ─────────────────────────────────── */}
+      <div className="border-t border-border/50 bg-card/60 backdrop-blur-md px-6 py-4">
+        <div className="max-w-2xl mx-auto flex gap-3 items-end">
           <Textarea
             rows={1}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a question about the PDF... (Enter to send)"
-            className="resize-none min-h-[44px] max-h-32"
+            placeholder="Ask a question about your PDF…"
+            className="resize-none min-h-[48px] max-h-36 rounded-xl bg-background border-border/60 px-4 py-3 text-sm placeholder:text-muted-foreground/60 focus-visible:border-primary/50 focus-visible:ring-primary/20"
           />
           <Button
             onClick={handleAsk}
             disabled={loading || !question.trim()}
-            className="h-11 px-6"
+            className="h-12 w-12 rounded-xl shrink-0 bg-primary hover:bg-primary/90 transition-all duration-200 disabled:opacity-40"
+            size="icon-lg"
           >
-            Send
+            <SendHorizonal className="w-5 h-5" />
           </Button>
         </div>
       </div>
