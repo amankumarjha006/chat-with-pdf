@@ -29,8 +29,8 @@ export default function PdfUploader({ onUploadSuccess }) {
     }
 
     document.getElementById("pdf-input").value = ""
-
     setSelectedFile(file)
+
     const formData = new FormData()
     formData.append("file", file)
 
@@ -47,7 +47,6 @@ export default function PdfUploader({ onUploadSuccess }) {
       })
     } catch (err) {
       console.log("Error:", err)
-      console.log("Error response:", err.response)
       setError("Upload failed. Make sure the backend is running.")
     } finally {
       setUploading(false)
@@ -57,120 +56,115 @@ export default function PdfUploader({ onUploadSuccess }) {
   function handleDrop(e) {
     e.preventDefault()
     setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    handleUpload(file)
+    handleUpload(e.dataTransfer.files[0])
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background bg-grid-pattern p-6 relative overflow-hidden">
-      {/* Theme toggle — top right */}
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-background overflow-hidden p-6">
+
+      {/* Theme toggle */}
       <div className="absolute top-5 right-5 z-20">
         <ThemeToggle />
       </div>
 
-      {/* Ambient gradient orbs */}
-      <div className="pointer-events-none absolute top-[-25%] left-[-15%] w-[600px] h-[600px] rounded-full bg-primary/[0.04] blur-[100px]" />
-      <div className="pointer-events-none absolute bottom-[-25%] right-[-15%] w-[500px] h-[500px] rounded-full bg-primary/[0.05] blur-[100px]" />
-      <div className="pointer-events-none absolute top-[30%] right-[10%] w-[200px] h-[200px] rounded-full bg-primary/[0.03] blur-[60px]" />
+      {/* Ambient orbs */}
+      <div className="orb orb-primary absolute w-[560px] h-[560px] top-[-20%] left-[-10%]" />
+      <div className="orb orb-secondary absolute w-[400px] h-[400px] bottom-[-20%] right-[-10%]" />
 
-      <div className="w-full max-w-xl space-y-10 animate-fade-in-up relative z-10">
-        {/* ── Header ─────────────────────────────────────── */}
+      {/* Subtle grid */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-60" />
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-[440px] space-y-9 animate-fade-in-up">
+
+        {/* Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 mb-1 shadow-sm">
-            <FileText className="w-8 h-8 text-primary" />
+          <div className="inline-flex items-center justify-center w-[60px] h-[60px] rounded-2xl bg-primary/10 mb-1">
+            <FileText className="w-7 h-7 text-primary animate-float" />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            Chat with PDF
-          </h1>
-          <p className="text-muted-foreground text-base max-w-sm mx-auto leading-relaxed">
-            Upload a document and start asking questions — powered by AI
-          </p>
+          <div>
+            <h1 className="text-[32px] font-bold tracking-tight text-foreground leading-tight">
+              Chat with PDF
+            </h1>
+            <p className="text-[14px] text-muted-foreground mt-2 max-w-[320px] mx-auto leading-relaxed">
+              Upload any document and get instant AI-powered answers
+            </p>
+          </div>
           <Badge
-            variant="secondary"
-            className="text-xs font-medium px-3 py-1.5 gap-1.5 rounded-full"
+            variant="outline"
+            className="text-[11px] font-medium px-3 py-1.5 gap-1.5 rounded-full border-primary/25 text-primary bg-primary/5"
           >
             <Sparkles className="w-3 h-3" />
-            RAG + Groq · llama-3.3-70b
+            RAG · Groq · llama-3.3-70b
           </Badge>
         </div>
 
-        {/* ── Upload Card with gradient glow ───────────── */}
+        {/* Upload card */}
         <div className="gradient-glow rounded-2xl">
-          <Card className="rounded-2xl shadow-xl shadow-primary/[0.05] border-border/50 bg-card/90 backdrop-blur-sm">
-            <CardContent className="p-8">
+          <Card className="rounded-2xl border-border/50 bg-card/95 shadow-xl shadow-primary/5 backdrop-blur-sm">
+            <CardContent className="p-6">
               {/* Drop zone */}
               <div
                 className={`
-                  group relative cursor-pointer rounded-xl border-2 border-dashed
-                  transition-all duration-300 ease-out
-                  ${
-                    dragOver
-                      ? "border-primary bg-primary/[0.06] scale-[1.01]"
-                      : "border-border/70 hover:border-primary/40 hover:bg-primary/[0.02]"
+                  relative cursor-pointer rounded-xl border-2 border-dashed
+                  transition-all duration-250
+                  ${dragOver
+                    ? "border-primary bg-primary/5 scale-[1.01]"
+                    : "border-border/60 hover:border-primary/40 hover:bg-primary/[0.02]"
                   }
                   ${uploading ? "pointer-events-none" : ""}
                 `}
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  setDragOver(true)
-                }}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
-                onClick={() =>
-                  !uploading && document.getElementById("pdf-input").click()
-                }
+                onClick={() => !uploading && document.getElementById("pdf-input").click()}
               >
-                <div className="flex flex-col items-center justify-center py-16 gap-5 px-6">
+                <div className="flex flex-col items-center justify-center py-14 px-6 gap-5">
+
                   {/* Icon */}
                   {uploading ? (
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                      <Loader2 className="w-8 h-8 text-primary animate-spin-slow" />
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <Loader2 className="w-7 h-7 text-primary animate-spin-slow" />
                     </div>
                   ) : (
-                    <div
-                      className={`
-                        w-16 h-16 rounded-2xl flex items-center justify-center
-                        transition-all duration-300
-                        ${
-                          dragOver
-                            ? "bg-primary/15 scale-110 animate-pulse-ring"
-                            : "bg-primary/10 group-hover:bg-primary/15 animate-float"
-                        }
-                      `}
-                    >
-                      <Upload className="w-8 h-8 text-primary" />
+                    <div className={`
+                      w-14 h-14 rounded-2xl flex items-center justify-center
+                      ${dragOver
+                        ? "bg-primary/15 animate-pulse-ring"
+                        : "bg-primary/8 group-hover:bg-primary/12 animate-float"
+                      }
+                    `}>
+                      <Upload className="w-6 h-6 text-primary" />
                     </div>
                   )}
 
-                  {/* Text */}
-                  <div className="text-center space-y-1.5">
+                  {/* Label */}
+                  <div className="text-center space-y-1">
                     {uploading ? (
                       <>
-                        <p className="text-sm font-semibold text-foreground">
-                          Processing your document…
+                        <p className="text-[14px] font-semibold text-foreground">
+                          Processing document…
                         </p>
                         {selectedFile && (
-                          <div className="flex items-center justify-center gap-1.5 mt-2 text-xs text-muted-foreground">
-                            <FileText className="w-3.5 h-3.5" />
+                          <p className="text-[12px] text-muted-foreground flex items-center justify-center gap-1.5 mt-1">
+                            <FileText className="w-3 h-3" />
                             {selectedFile.name}
-                          </div>
+                          </p>
                         )}
                       </>
                     ) : (
                       <>
-                        <p className="text-base font-semibold text-foreground">
-                          {dragOver
-                            ? "Release to upload"
-                            : "Drag & drop your PDF here"}
+                        <p className="text-[14px] font-semibold text-foreground">
+                          {dragOver ? "Drop to upload" : "Drag & drop your PDF"}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          or click to browse · PDF up to 50 MB
+                        <p className="text-[12px] text-muted-foreground">
+                          or click to browse — PDF only
                         </p>
                       </>
                     )}
                   </div>
 
-                  {/* Shimmer overlay during upload */}
+                  {/* Shimmer */}
                   {uploading && (
                     <div className="absolute inset-0 rounded-xl animate-shimmer" />
                   )}
@@ -186,23 +180,23 @@ export default function PdfUploader({ onUploadSuccess }) {
                 />
               </div>
 
-              {/* Success state */}
+              {/* Success */}
               {uploaded && (
-                <div className="flex items-center justify-center gap-2 mt-5">
+                <div className="flex items-center justify-center gap-2 mt-4">
                   <Badge
                     variant="secondary"
-                    className="text-green-600 bg-green-50 border-green-200 gap-1.5 px-3 py-1.5 rounded-full"
+                    className="text-[11px] gap-1.5 px-3 py-1.5 rounded-full text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900"
                   >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <CheckCircle2 className="w-3 h-3" />
                     {uploaded.chunk_count} chunks indexed
                   </Badge>
                 </div>
               )}
 
-              {/* Error state */}
+              {/* Error */}
               {error && (
-                <div className="flex items-center justify-center gap-2 mt-5 text-sm text-destructive">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-destructive">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
@@ -210,29 +204,22 @@ export default function PdfUploader({ onUploadSuccess }) {
           </Card>
         </div>
 
-        {/* ── Feature badges ─────────────────────────────── */}
-        <div className="flex items-center justify-center gap-8 text-muted-foreground">
-          <div className="flex items-center gap-2.5 text-xs">
-            <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
-              <Layers className="w-3.5 h-3.5 text-primary/70" />
+        {/* Feature row */}
+        <div className="flex items-center justify-center gap-7 text-muted-foreground">
+          {[
+            { icon: Layers, label: "Smart chunking" },
+            { icon: BrainCircuit, label: "AI answers" },
+            { icon: BookOpen, label: "Source pages" },
+          ].map(({ icon: Icon, label }, i) => (
+            <div key={i} className="flex items-center gap-2 text-[11px]">
+              <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center">
+                <Icon className="w-3 h-3 text-primary/60" />
+              </div>
+              <span className="font-medium">{label}</span>
             </div>
-            <span className="font-medium">Smart Chunking</span>
-          </div>
-          <div className="w-px h-5 bg-border/60" />
-          <div className="flex items-center gap-2.5 text-xs">
-            <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
-              <BrainCircuit className="w-3.5 h-3.5 text-primary/70" />
-            </div>
-            <span className="font-medium">AI-Powered Q&A</span>
-          </div>
-          <div className="w-px h-5 bg-border/60" />
-          <div className="flex items-center gap-2.5 text-xs">
-            <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
-              <BookOpen className="w-3.5 h-3.5 text-primary/70" />
-            </div>
-            <span className="font-medium">Source Pages</span>
-          </div>
+          ))}
         </div>
+
       </div>
     </div>
   )

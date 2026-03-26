@@ -1,6 +1,7 @@
 import fitz
 import faiss
 import numpy as np
+import threading
 from sentence_transformers import SentenceTransformer
 
 model = SentenceTransformer("all-MiniLM-L6-v2")

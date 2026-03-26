@@ -34,45 +34,41 @@ export default function App() {
         />
       ) : (
         <div className="flex flex-col h-screen w-screen overflow-hidden">
-          {/* ── Navbar ────────────────────────────────────── */}
-          <div className="h-14 border-b border-border/50 px-5 flex items-center justify-between shrink-0 bg-card/70 backdrop-blur-md">
-            {/* Left — Logo + Title */}
+          {/* ── Navbar ─────────────────────────────────────── */}
+          <header className="header-glass h-13 px-5 flex items-center justify-between shrink-0 z-10">
+            {/* Left — branding */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shadow-sm">
-                <FileText className="w-[18px] h-[18px] text-primary" />
+              <div className="w-8 h-8 rounded-lg bg-primary/12 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-primary" />
               </div>
-              <div>
-                <h1 className="text-sm font-bold tracking-tight text-foreground leading-tight">
+              <div className="leading-tight">
+                <p className="text-[13px] font-semibold text-foreground tracking-tight">
                   Chat with PDF
-                </h1>
-                <p className="text-[10px] text-muted-foreground leading-tight">
-                  Powered by RAG + Groq
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  RAG · Groq · FAISS
                 </p>
               </div>
             </div>
 
-            {/* Right — Status + Actions */}
-            <div className="flex items-center gap-3">
-              {pdfReady && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-medium gap-1.5 px-2.5 py-1 rounded-full border-border/60"
-                >
-                  <Zap className="w-3 h-3 text-primary" />
-                  llama-3.3-70b-versatile
-                </Badge>
-              )}
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
-                <FileText className="w-3 h-3" />
-                <span className="truncate max-w-[140px] font-medium">
-                  {fileName}
-                </span>
+            {/* Right — status pills + toggle */}
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="text-[10px] gap-1.5 px-2.5 py-1 rounded-full border-primary/20 text-primary bg-primary/5 font-medium"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                llama-3.3-70b
+              </Badge>
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/60 px-2.5 py-1.5 rounded-full max-w-[160px]">
+                <FileText className="w-3 h-3 shrink-0" />
+                <span className="truncate font-medium">{fileName}</span>
               </div>
               <ThemeToggle />
             </div>
-          </div>
+          </header>
 
-          {/* ── Content — Sidebar + Chat ──────────────────── */}
+          {/* ── Content ────────────────────────────────────── */}
           <div className="flex flex-1 min-h-0">
             <Sidebar
               fileName={fileName}
