@@ -166,3 +166,9 @@ async def ask_question(body: QuestionRequest):
         return APIResponse.success(answer=answer, sources=pages)
     else:
         return APIResponse.success(answer=answer, sources=[])
+
+if __name__ == "__main__":
+    import uvicorn
+    # Render and Railway provide the port dynamically via the PORT environment variable.
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
