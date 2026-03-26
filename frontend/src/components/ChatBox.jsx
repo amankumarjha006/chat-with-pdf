@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "@/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,13 +27,27 @@ export default function ChatBox({ fileName, question, setQuestion }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:8000/ask", {
+      const res = await axios.post(`${API_BASE_URL}/ask`, {
         question: userMessage.text,
       });
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: res.data.answer, pages: res.data.pages },
-      ]);
+      const { answer, sources, status, message } = res.data;
+
+      if (status === "not_found") {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", text: message || "Answer not found in the document." },
+        ]);
+      } else if (status === "error") {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", text: message || "An error occurred." },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", text: answer, pages: sources },
+        ]);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -56,7 +71,7 @@ export default function ChatBox({ fileName, question, setQuestion }) {
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* ── Messages ──────────────────────────────────── */}
       <ScrollArea className="flex-1 min-h-0">
-        <div className="max-w-[680px] mx-auto px-6 py-8 space-y-5">
+        <div className="max-w-[680px] mx-auto px-3 md:px-6 py-5 md:py-8 space-y-4 md:space-y-5">
 
           {/* Welcome state */}
           {isWelcome && (
@@ -89,7 +104,7 @@ export default function ChatBox({ fileName, question, setQuestion }) {
               )}
 
               <div
-                className={`max-w-[78%] rounded-2xl text-[13px] leading-relaxed ${
+                className={`max-w-[85%] md:max-w-[78%] rounded-2xl text-[13px] leading-relaxed ${
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground px-4 py-3 rounded-br-md"
                     : "msg-ai px-4 py-3.5 rounded-bl-md"
@@ -143,7 +158,7 @@ export default function ChatBox({ fileName, question, setQuestion }) {
       </ScrollArea>
 
       {/* ── Input bar ─────────────────────────────────── */}
-      <div className="border-t border-border/50 px-6 py-4 bg-card/40 backdrop-blur-sm">
+      <div className="border-t border-border/50 px-3 md:px-6 py-3 md:py-4 bg-card/40 backdrop-blur-sm">
         <div className="max-w-[680px] mx-auto flex gap-2.5 items-end">
           <Textarea
             rows={1}

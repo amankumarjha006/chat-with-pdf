@@ -3,6 +3,7 @@ import axios from "axios"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import ThemeToggle from "./ThemeToggle"
+import API_BASE_URL from "@/api"
 import {
   Upload,
   FileText,
@@ -38,12 +39,19 @@ export default function PdfUploader({ onUploadSuccess }) {
     setError(null)
 
     try {
-      const res = await axios.post("http://localhost:8000/upload", formData)
-      setUploaded(res.data)
+      const res = await axios.post(`${API_BASE_URL}/upload`, formData)
+      const data = res.data
+
+      if (data.status === "error") {
+        setError(data.message || "Upload failed.")
+        return
+      }
+
+      setUploaded(data)
       onUploadSuccess({
         name: file.name,
-        suggestions: res.data.suggestions,
-        chunkCount: res.data.chunk_count,
+        suggestions: data.suggestions || [],
+        chunkCount: data.chunk_count,
       })
     } catch (err) {
       console.log("Error:", err)
