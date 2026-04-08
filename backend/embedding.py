@@ -1,46 +1,63 @@
 """
-Lazy-loaded singleton for the SentenceTransformer embedding model.
-The model is only loaded on the first call to get_model(), avoiding slow cold starts.
+Embedding layer using Cohere's embed-english-v3.0 API.
+Replaces the local sentence-transformers model for lightweight deployment.
 """
 
+import os
 import logging
-import threading
+
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+import cohere
 
 from config import EMBEDDING_MODEL_NAME
 
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
 logger = logging.getLogger(__name__)
 
-_model: SentenceTransformer | None = None
-_lock = threading.Lock()
+_client = cohere.Client(os.getenv("COHERE_API_KEY"))
+
+# Cohere allows up to 96 texts per embed call
+_MAX_BATCH = 96
 
 
-def get_model() -> SentenceTransformer:
-    """Return the shared SentenceTransformer instance, loading it on first call."""
-    global _model
-    if _model is None:
-        with _lock:
-            # Double-checked locking
-            if _model is None:
-                logger.info("Loading embedding model '%s' (first use)...", EMBEDDING_MODEL_NAME)
-                _model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-                logger.info("Embedding model loaded successfully.")
-    return _model
-
-
-def encode(texts: list[str], batch_size: int = 64) -> np.ndarray:
+def encode_documents(texts: list[str]) -> np.ndarray:
     """
-    Encode a list of texts into embeddings using the lazily-loaded model.
-    Uses batching for memory-efficient encoding of large inputs.
+    Encode document texts for indexing.
+    Uses input_type="search_document" as required by Cohere Embed v3.
 
     Raises:
-        RuntimeError: If the embedding model fails to encode.
+        RuntimeError: If the Cohere API call fails.
     """
+    return _encode(texts, input_type="search_document")
+
+
+def encode_query(texts: list[str]) -> np.ndarray:
+    """
+    Encode query texts for searching.
+    Uses input_type="search_query" as required by Cohere Embed v3.
+
+    Raises:
+        RuntimeError: If the Cohere API call fails.
+    """
+    return _encode(texts, input_type="search_query")
+
+
+def _encode(texts: list[str], input_type: str) -> np.ndarray:
+    """Internal: batch-encode texts via Cohere Embed API."""
     try:
-        model = get_model()
-        vectors = model.encode(texts, batch_size=batch_size, show_progress_bar=False)
-        return np.array(vectors, dtype="float32")
+        all_embeddings: list[list[float]] = []
+        for i in range(0, len(texts), _MAX_BATCH):
+            batch = texts[i : i + _MAX_BATCH]
+            response = _client.embed(
+                texts=batch,
+                model=EMBEDDING_MODEL_NAME,
+                input_type=input_type,
+            )
+            all_embeddings.extend(response.embeddings)
+
+        return np.array(all_embeddings, dtype="float32")
     except Exception as e:
-        logger.error("Embedding model error: %s", e)
-        raise RuntimeError("Embedding model error occurred") from e
+        logger.error("Cohere embedding error: %s", e)
+        raise RuntimeError("Embedding API error occurred") from e

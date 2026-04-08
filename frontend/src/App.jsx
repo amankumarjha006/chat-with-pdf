@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "@/api";
-import PdfUploader from "./components/PdfUploader";
+import PdfUploader from "./components/PDFUploader";
 import ChatBox from "./components/ChatBox";
 import Sidebar, { MobileSidebarToggle } from "./components/Sidebar";
 import ThemeToggle from "./components/ThemeToggle";

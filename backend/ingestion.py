@@ -18,7 +18,7 @@ from config import (
     EMBEDDING_DIMENSION,
     CACHE_DIR,
 )
-from embedding import encode
+from embedding import encode_documents
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ def build_faiss_index(chunks: list[dict]) -> faiss.IndexFlatIP:
         RuntimeError: Propagated from embedding.encode if encoding fails.
     """
     texts = [c["text"] for c in chunks]
-    vectors = encode(texts)
+    vectors = encode_documents(texts)
 
     # Normalize for cosine similarity via inner product
     faiss.normalize_L2(vectors)

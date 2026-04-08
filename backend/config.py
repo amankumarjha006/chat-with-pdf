@@ -6,8 +6,8 @@ All constants are configurable via environment variables with sensible defaults.
 import os
 
 # ── Embedding Model ──────────────────────────────────────────────────────────
-EMBEDDING_MODEL_NAME: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-EMBEDDING_DIMENSION: int = int(os.getenv("EMBEDDING_DIMENSION", "384"))
+EMBEDDING_MODEL_NAME: str = os.getenv("EMBEDDING_MODEL", "embed-english-v3.0")
+EMBEDDING_DIMENSION: int = int(os.getenv("EMBEDDING_DIMENSION", "1024"))
 
 # ── Chunking ─────────────────────────────────────────────────────────────────
 CHUNK_SIZE: int = int(os.getenv("CHUNK_SIZE", "500"))

@@ -6,7 +6,7 @@ import logging
 import faiss
 import numpy as np
 
-from embedding import encode
+from embedding import encode_query
 from config import TOP_K, SIMILARITY_THRESHOLD
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def retrieve(
         RuntimeError: If FAISS search or encoding fails.
     """
     try:
-        query_vector = encode([question])
+        query_vector = encode_query([question])
         faiss.normalize_L2(query_vector)
         scores, indices = index.search(query_vector, k)
     except RuntimeError:

@@ -5,6 +5,7 @@ FastAPI application — Chat with PDF backend.
 import os
 import asyncio
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,17 +26,36 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+# ── Lifespan ─────────────────────────────────────────────────────────────────
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup / shutdown lifecycle hook."""
+    logger.info("🚀 Chat with PDF backend starting up…")
+    yield
+    logger.info("👋 Chat with PDF backend shutting down…")
+
+
 # ── App initialization ───────────────────────────────────────────────────────
 
-app = FastAPI(title="Chat with PDF", version="2.0.0")
+app = FastAPI(title="Chat with PDF", version="2.0.0", lifespan=lifespan)
 
 # CORS — configurable via CORS_ORIGINS env var (comma-separated)
 _cors_origins = os.getenv("CORS_ORIGINS", "*")
-_origins = ["*"] if _cors_origins == "*" else [o.strip() for o in _cors_origins.split(",")]
+if _cors_origins == "*":
+    _origins = ["*"]
+else:
+    _origins = [o.strip() for o in _cors_origins.split(",")]
+    # Always allow localhost for local development
+    for _local in ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"]:
+        if _local not in _origins:
+            _origins.append(_local)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -169,6 +189,6 @@ async def ask_question(body: QuestionRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    # Render and Railway provide the port dynamically via the PORT environment variable.
-    port = int(os.getenv("PORT", 8000))
+    # Render uses port 10000; locally fallback to PORT env var or 10000.
+    port = int(os.getenv("PORT", 10000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
